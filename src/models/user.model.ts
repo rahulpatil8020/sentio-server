@@ -7,8 +7,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  profileType?: string;
   createdAt: Date;
+  isOnboarded: boolean;
 }
 
 // --------------------
@@ -29,12 +29,8 @@ const UserSchema: Schema<IUser> = new Schema(
     name: { type: String, required: true, minlength: 4, maxlength: 50 },
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true },
-    profileType: {
-      type: String,
-      enum: ["STUDENT", "PROFESSIONAL"],
-      default: "PROFESSIONAL",
-    },
     createdAt: { type: Date, default: Date.now },
+    isOnboarded: { type: Boolean, default: false },
   },
   {
     versionKey: false,

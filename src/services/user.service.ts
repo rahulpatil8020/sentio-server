@@ -12,7 +12,7 @@ const SALT_ROUNDS = 10;
 
 export const registerUser = async (
   data: RegisterUserInput
-): Promise<Omit<IUser, "password">> => {
+) => {
   // Normalize email
   const email = data.email.toLowerCase();
 
@@ -32,9 +32,19 @@ export const registerUser = async (
     password: hashedPassword,
   });
 
+  const accessToken = signAccessToken({
+    userId: user._id,
+    email: user.email,
+  });
+  const refreshToken = signRefreshToken({
+    userId: user._id,
+    email: user.email,
+  });
+
+
   // Remove password before returning
   const { password, ...safeUser } = user.toObject();
-  return safeUser;
+  return { accessToken, refreshToken, user: safeUser };
 };
 
 export const loginUser = async (email: string, password: string) => {
