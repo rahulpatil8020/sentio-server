@@ -9,6 +9,10 @@ export interface IUser extends Document {
   password: string;
   createdAt: Date;
   isOnboarded: boolean;
+  city?: string;
+  country?: string;
+  profession?: string;
+  goals?: string[];
 }
 
 // --------------------
@@ -31,10 +35,12 @@ const UserSchema: Schema<IUser> = new Schema(
     password: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     isOnboarded: { type: Boolean, default: false },
+    city: { type: String, maxlength: 50 },
+    country: { type: String, maxlength: 50 },
+    profession: { type: String, maxlength: 50 },
+    goals: { type: [String], default: [] },
   },
-  {
-    versionKey: false,
-  }
+  { versionKey: false }
 );
 
 // --------------------

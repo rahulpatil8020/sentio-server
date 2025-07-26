@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 
-const ACCESS_TOKEN_EXPIRY = "15m";
-const REFRESH_TOKEN_EXPIRY = "7d";
+const ACCESS_TOKEN_EXPIRY = "1d";
+const REFRESH_TOKEN_EXPIRY = "30d";
 
 interface TokenPayload {
   userId: string | unknown;

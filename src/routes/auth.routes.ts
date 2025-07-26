@@ -15,7 +15,7 @@ router.post(
   validateRequest(LoginSchema),
   asyncHandler(authController.login)
 );
-router.get("/refresh-token", asyncHandler(authController.refreshToken));
-router.post("/logout", asyncHandler(authController.logout));
 
+
+router.get("/refresh-token", asyncHandler(authController.refreshToken));
 export default router;

@@ -3,12 +3,12 @@ import * as authService from "../services/user.service";
 import { AuthError } from "../utils/errors/errors";
 
 export const signup = async (req: Request, res: Response) => {
-  const user = await authService.registerUser(req.body);
+  const { accessToken, refreshToken, user } = await authService.registerUser(req.body);
 
   res.status(201).json({
     success: true,
     message: "User created successfully",
-    data: { user },
+    data: { accessToken, refreshToken, user },
   });
 };
 
@@ -25,6 +25,7 @@ export const login = async (req: Request, res: Response) => {
   });
 };
 
+
 export const refreshToken = async (req: Request, res: Response) => {
   if (!req.body.refreshToken) {
     throw new AuthError("Refresh token is required");
@@ -36,13 +37,5 @@ export const refreshToken = async (req: Request, res: Response) => {
     success: true,
     message: "Access token refreshed successfully",
     data: { accessToken: newAccessToken },
-  });
-};
-
-export const logout = async (_req: Request, res: Response) => {
-  // For mobile, logout is client-side: delete tokens from storage
-  res.status(200).json({
-    success: true,
-    message: "User logged out successfully",
   });
 };

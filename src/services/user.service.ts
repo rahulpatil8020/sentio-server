@@ -52,7 +52,7 @@ export const loginUser = async (email: string, password: string) => {
 
   // Find user by email
   const user = await User.findByEmail(normalizedEmail);
-  if (!user) throw new AuthError("Invalid email or password");
+  if (!user) throw new AuthError("No User with this Email");
 
   // Compare passwords
   const isMatch = await bcrypt.compare(password, user.password);
@@ -72,6 +72,20 @@ export const loginUser = async (email: string, password: string) => {
   const { password: _, ...safeUser } = user.toObject();
 
   return { accessToken, refreshToken, user: safeUser };
+};
+
+export const onboardUser = async (
+  userId: string,
+  data: {
+    city?: string;
+    country?: string;
+    profession?: string;
+    goals?: string[];
+    isOnboarded: boolean;
+  }
+) => {
+  const user = await User.updateUserById(userId, data);
+  return user;
 };
 
 export const refreshAccessToken = (refreshToken: string) => {
