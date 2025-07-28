@@ -1,0 +1,25 @@
+📋 Habit Categories + SF Symbols
+	1.	Mind & Mental Clarity
+brain.head.profile
+	2.	Physical Health & Fitness
+figure.walk.circle
+	3.	Nutrition & Diet
+leaf
+	4.	Sleep & Recovery
+bed.double.fill
+	5.	Finance & Money Management
+banknote
+	6.	Productivity & Work
+checkmark.circle
+	7.	Learning & Personal Growth
+book.closed
+	8.	Creativity & Hobbies
+paintbrush.pointed
+	9.	Relationships & Social Life
+person.2.fill
+	10.	Environment & Space
+house.fill
+	11.	Digital Hygiene
+iphone.slash
+	12.	Purpose & Reflection
+compass

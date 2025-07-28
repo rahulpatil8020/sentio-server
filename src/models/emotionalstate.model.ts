@@ -20,7 +20,9 @@ interface IEmotionalStateModel extends Model<IEmotionalState> {
     data: Partial<IEmotionalState>
   ): Promise<IEmotionalState>;
   deleteById(id: string): Promise<IEmotionalState | null>;
-  getLast7DaysByUserId(userId: string): Promise<IEmotionalState[]>;
+  getLast7DaysByUserId(userId: mongoose.Types.ObjectId): Promise<IEmotionalState[]>;
+  getByDate(userId: mongoose.Types.ObjectId, date: string): Promise<IEmotionalState[]>;
+
 }
 
 // --------------------
@@ -70,6 +72,23 @@ EmotionalStateSchema.statics.getLast7DaysByUserId = function (userId: string) {
   }).sort({ createdAt: -1 }); // latest first
 };
 
+EmotionalStateSchema.statics.getByDate = function (
+  userId: mongoose.Types.ObjectId,
+  date: string
+) {
+  const start = new Date(date);
+  const end = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return this.find({
+    userId,
+    createdAt: {
+      $gte: start,
+      $lte: end,
+    },
+  }).sort({ createdAt: -1 }); // newest first
+};
 // --------------------
 // Model
 // --------------------

@@ -84,3 +84,23 @@ export class ReminderError extends ApiError {
     super(400, "ReminderError", message);
   }
 }
+
+/**
+ * EmotionalStateError
+ * Thrown for emotional state-related domain errors
+ */
+export class EmotionalStateError extends ApiError {
+  constructor(message = "Emotional state operation failed") {
+    super(400, "EmotionalStateError", message);
+  }
+}
+
+/**
+ * NotFoundError
+ * Thrown when a requested resource is not found
+ */
+// export class NotFoundError extends ApiError {
+//   constructor(resource = "Resource") {
+//     super(404, "NotFoundError", `${resource} not found`);
+//   }
+// }

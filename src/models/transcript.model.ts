@@ -19,6 +19,8 @@ interface ITranscriptModel extends Model<ITranscript> {
   findTranscriptById(id: string): Promise<ITranscript | null>;
   createTranscript(data: Partial<ITranscript>): Promise<ITranscript>;
   deleteTranscriptById(id: string): Promise<ITranscript | null>;
+  getSummaryByDate(userId: string, date: string): Promise<ITranscript | null>;
+  getSummariesByDate(userId: string, date: string): Promise<ITranscript[]>;
 }
 
 // --------------------
@@ -73,6 +75,40 @@ TranscriptSchema.statics.getSummariesForLast7Days = function (userId: string) {
   })
     .sort({ createdAt: -1 }) // latest first
     .select("summary createdAt"); // only fetch summary + date
+};
+
+TranscriptSchema.statics.getSummaryByDate = function (
+  userId: string,
+  date: string
+) {
+  const start = new Date(date);
+  const end = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return this.findOne({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+    summary: { $exists: true, $ne: "" },
+  }).select("summary createdAt");
+};
+
+TranscriptSchema.statics.getSummariesByDate = function (
+  userId: string,
+  date: string
+) {
+  const start = new Date(date);
+  const end = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return this.find({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+    summary: { $exists: true, $ne: "" },
+  })
+    .sort({ createdAt: -1 }) // optional: newest first
+    .select("summary createdAt");
 };
 
 // --------------------

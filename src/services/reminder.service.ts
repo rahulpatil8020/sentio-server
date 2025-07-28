@@ -18,6 +18,7 @@ export const getRemindersByUserId = async (
   return Reminder.findByUserId(userId);
 };
 
+
 export const getUpcomingRemindersByUserId = async (
   userId: string
 ): Promise<IReminder[]> => {
@@ -49,4 +50,11 @@ export const insertManyReminders = async (
     throw new ReminderError("No reminders provided for bulk insert");
   }
   return Reminder.insertManyReminders(userId, reminders);
+};
+
+export const getRemindersByDate = async (
+  userId: string,
+  date: string
+): Promise<IReminder[]> => {
+  return Reminder.findByDate(userId, date);
 };

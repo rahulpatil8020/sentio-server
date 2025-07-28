@@ -36,8 +36,12 @@ const TodoSchema: Schema<ITodo> = new Schema(
     completed: { type: Boolean, default: false },
     dueDate: { type: Date },
     createdBy: { type: String, enum: ["AI", "USER"], default: "USER" },
-    createdAt: { type: Date, default: Date.now },
-    priority: { type: Number, min: 1, max: 10, default: 5 }, // Priority: 1 (highest) to 10 (lowest)
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      expires: 60 * 60 * 24 * 30, // Automatically delete after 30 days (TTL index)
+    },
+    priority: { type: Number, min: 1, max: 10, default: 5 },
   },
   {
     versionKey: false,
@@ -55,7 +59,7 @@ TodoSchema.statics.findIncompleteTodoByUserId = function (userId: string) {
   return this.find({
     userId,
     completed: false,
-  }).sort({ dueDate: 1, createdAt: -1 }); // Sort: soonest due first
+  }).sort({ dueDate: 1, createdAt: -1 });
 };
 
 TodoSchema.statics.createTodo = function (data: Partial<ITodo>) {
@@ -81,8 +85,8 @@ TodoSchema.statics.insertManyTodos = async function (
     userId,
     title: t.title,
     dueDate: t.dueDate ? new Date(t.dueDate) : undefined,
-    createdBy: "AI", // mark all LLM-generated todos
-    priority: 5, // default priority
+    createdBy: "AI",
+    priority: 5,
   }));
 
   return this.insertMany(todosToInsert);
@@ -92,7 +96,7 @@ TodoSchema.statics.markCompletedTodos = async function (
   userId: string,
   titles: string[]
 ) {
-  if (!titles?.length) return 0; // no work to do
+  if (!titles?.length) return 0;
 
   const result = await this.updateMany(
     {
@@ -103,7 +107,7 @@ TodoSchema.statics.markCompletedTodos = async function (
     { $set: { completed: true } }
   );
 
-  return result.modifiedCount; // how many were updated
+  return result.modifiedCount;
 };
 
 // --------------------

@@ -27,6 +27,7 @@ interface IReminderModel extends Model<IReminder> {
     data: Partial<IReminder>
   ): Promise<IReminder | null>;
   deleteReminderById(id: string): Promise<IReminder | null>;
+  findByDate(userId: string, date: string): Promise<IReminder[]>;
 }
 
 // --------------------
@@ -91,6 +92,23 @@ ReminderSchema.statics.insertManyReminders = async function (
   }));
 
   return this.insertMany(docs);
+};
+
+ReminderSchema.statics.findByDate = async function (
+  userId: string,
+  date: string
+) {
+  const start = new Date(date);
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+
+  return this.find({
+    userId,
+    remindAt: {
+      $gte: start,
+      $lte: end,
+    },
+  }).sort({ remindAt: 1 });
 };
 
 // --------------------
