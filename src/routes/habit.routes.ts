@@ -32,4 +32,7 @@ router.post(
   asyncHandler(habitController.markHabitsCompleted)
 );
 
+router.post("/decline", () => { });
+router.post("/accept", asyncHandler(habitController.acceptHabit));
+
 export default router;

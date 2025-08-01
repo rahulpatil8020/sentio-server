@@ -40,6 +40,7 @@ export interface IHabit extends Document {
   streak: IStreak;
   completions: ICompletion[];
   isDeleted: boolean;
+  isAccepted: boolean;
 }
 
 interface IHabitModel extends Model<IHabit> {
@@ -53,6 +54,7 @@ interface IHabitModel extends Model<IHabit> {
     habits: Partial<IHabit>[]
   ): Promise<IHabit | null>;
   markHabitsCompleted(userId: string, titles: string[]): Promise<void> | null;
+  acceptHabitById(id: string): Promise<IHabit | null>;
 }
 
 // 🔥 Main Habit Schema
@@ -101,6 +103,10 @@ const HabitSchema: Schema<IHabit> = new Schema(
       type: Boolean,
       default: false,
     },
+    isAccepted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { versionKey: false }
 );
@@ -116,6 +122,10 @@ HabitSchema.statics.findActiveHabitsByUserId = function (userId: string) {
     isDeleted: false,
   });
 };
+
+HabitSchema.statics.acceptHabitById = function (id: string) {
+  return this.findByIdAndUpdate(id, { isAccepted: true }, { new: true });
+}
 
 HabitSchema.statics.createHabit = function (data: Partial<IHabit>) {
   return this.create(data);

@@ -6,8 +6,8 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 export interface ITranscript extends Document {
   userId: mongoose.Types.ObjectId;
   text: string;
-  openAiResponse: any; // Can be OpenAI.Chat.Completions.ChatCompletion if you want to type it
-  summary: string;
+  openAiResponse?: any; // Can be OpenAI.Chat.Completions.ChatCompletion if you want to type it
+  summary?: string;
   createdAt: Date;
 }
 
@@ -21,6 +21,7 @@ interface ITranscriptModel extends Model<ITranscript> {
   deleteTranscriptById(id: string): Promise<ITranscript | null>;
   getSummaryByDate(userId: string, date: string): Promise<ITranscript | null>;
   getSummariesByDate(userId: string, date: string): Promise<ITranscript[]>;
+  getTranscriptsByDate(userId: string, date: string): Promise<ITranscript[]>;
 }
 
 // --------------------
@@ -30,7 +31,7 @@ const TranscriptSchema: Schema<ITranscript> = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     text: { type: String, required: true },
-    openAiResponse: { type: Schema.Types.Mixed, required: true },
+    openAiResponse: { type: Schema.Types.Mixed },
     summary: { type: String },
     createdAt: { type: Date, default: Date.now },
   },
@@ -109,6 +110,21 @@ TranscriptSchema.statics.getSummariesByDate = function (
   })
     .sort({ createdAt: -1 }) // optional: newest first
     .select("summary createdAt");
+};
+
+TranscriptSchema.statics.getTranscriptsByDate = function (
+  userId: string,
+  date: string
+) {
+  const start = new Date(date);
+  const end = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return this.find({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+  }).sort({ createdAt: -1 }); // optional: newest first
 };
 
 // --------------------

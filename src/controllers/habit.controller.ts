@@ -50,6 +50,17 @@ export const updateHabit = async (req: Request, res: Response) => {
   });
 };
 
+export const acceptHabit = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const habit = await habitService.acceptHabitById(id);
+
+  res.status(200).json({
+    success: true,
+    message: "Habit accepted successfully",
+    data: { habit },
+  });
+};
+
 export const deleteHabit = async (req: Request, res: Response) => {
   const { id } = req.params;
   const habit = await habitService.deleteHabitById(id);

@@ -323,3 +323,10 @@ export const getSummariesByDate = async (
 ): Promise<Pick<ITranscript, "summary" | "createdAt">[]> => {
   return Transcript.getSummariesByDate(userId, date);
 };
+
+export const getTranscriptsByDate = async (
+  userId: string,
+  date: string
+): Promise<ITranscript[]> => {
+  return Transcript.getTranscriptsByDate(userId, date);
+};

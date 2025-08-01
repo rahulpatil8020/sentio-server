@@ -24,6 +24,12 @@ export const updateHabitById = async (
   return updatedHabit;
 };
 
+export const acceptHabitById = async (id: string): Promise<IHabit | null> => {
+  const acceptedHabit = await Habit.acceptHabitById(id);
+  if (!acceptedHabit) throw new HabitError("Habit not found");
+  return acceptedHabit;
+}
+
 export const deleteHabitById = async (id: string): Promise<IHabit | null> => {
   const deletedHabit = await Habit.deleteHabitById(id);
   if (!deletedHabit) throw new HabitError("Habit not found");

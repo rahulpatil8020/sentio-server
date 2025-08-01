@@ -7,12 +7,13 @@ import * as transcript from "./transcript.service";
 
 
 export const getDailyDataByDate = async (userId: string, date: string) => {
-    const [habits, todos, reminders, emotions, summaries] = await Promise.all([
+    const [habits, todos, reminders, emotions, summaries, transcripts] = await Promise.all([
         habitService.getActiveHabitsByUserId(userId),
         todoService.getIncompleteTodosByUserId(userId),
         reminderService.getRemindersByDate(userId, date),
         emotionService.getEmotionsByDate(userId, date),
         transcript.getSummariesByDate(userId, date),
+        transcript.getTranscriptsByDate(userId, date),
     ]);
 
     return {
@@ -22,6 +23,7 @@ export const getDailyDataByDate = async (userId: string, date: string) => {
         reminders,
         emotions,
         summaries,
+        transcripts,
     };
 };
 
@@ -34,12 +36,13 @@ export const getDailyDataInRange = async (
 
     const results = await Promise.all(
         dateRange.map(async (date) => {
-            const [habits, todos, reminders, emotions, summaries] = await Promise.all([
+            const [habits, todos, reminders, emotions, summaries, transcripts] = await Promise.all([
                 habitService.getActiveHabitsByUserId(userId),
                 todoService.getIncompleteTodosByUserId(userId),
                 reminderService.getRemindersByDate(userId, date),
                 emotionService.getEmotionsByDate(userId, date),
                 transcript.getSummaryByDate(userId, date).catch(() => null), // in case not found
+                transcript.getTranscriptsByDate(userId, date),
             ]);
 
             return {
@@ -49,6 +52,7 @@ export const getDailyDataInRange = async (
                 reminders,
                 emotions,
                 summaries,
+                transcripts,
             };
         })
     );
@@ -56,7 +60,6 @@ export const getDailyDataInRange = async (
     return results;
 };
 
-// ✅ Helper to generate all dates in ISO format from start to end
 function generateDateRange(start: string, end: string): string[] {
     const startDate = new Date(start);
     const endDate = new Date(end);
