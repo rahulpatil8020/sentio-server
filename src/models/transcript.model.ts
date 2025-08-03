@@ -22,6 +22,8 @@ interface ITranscriptModel extends Model<ITranscript> {
   getSummaryByDate(userId: string, date: string): Promise<ITranscript | null>;
   getSummariesByDate(userId: string, date: string): Promise<ITranscript[]>;
   getTranscriptsByDate(userId: string, date: string): Promise<ITranscript[]>;
+  getTranscriptsByRange(userId: string, start: Date, end: Date): Promise<ITranscript[]>;
+  getSummariesByRange(userId: string, start: Date, end: Date): Promise<ITranscript[]>;
 }
 
 // --------------------
@@ -125,6 +127,31 @@ TranscriptSchema.statics.getTranscriptsByDate = function (
     userId,
     createdAt: { $gte: start, $lte: end },
   }).sort({ createdAt: -1 }); // optional: newest first
+};
+
+TranscriptSchema.statics.getTranscriptsByRange = function (
+  userId: string,
+  start: Date,
+  end: Date
+) {
+  return this.find({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+  });
+};
+
+TranscriptSchema.statics.getSummariesByRange = function (
+  userId: string,
+  start: Date,
+  end: Date
+) {
+  return this.find({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+    summary: { $exists: true, $ne: "" },
+  })
+    .sort({ createdAt: -1 }) // optional: newest first
+    .select("summary createdAt");
 };
 
 // --------------------

@@ -44,3 +44,11 @@ export const deleteEmotionalStateById = async (
     if (!deleted) throw new EmotionalStateError("Emotional state not found");
     return deleted;
 };
+
+export const getEmotionsByRange = async (
+    userId: string,
+    start: Date,
+    end: Date
+): Promise<IEmotionalState[]> => {
+    return EmotionalState.findByRange(userId, start, end);
+};

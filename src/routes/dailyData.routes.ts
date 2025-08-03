@@ -8,11 +8,7 @@ const router = Router();
 // Secure all routes with JWT
 router.use(verifyToken);
 
-// GET /daily-data?date=YYYY-MM-DD
+// GET /daily-data?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
 router.get("/", asyncHandler(dailyDataController.getDailyData));
-
-// Optional: for prefetching range of days
-// GET /daily-data/range?start=YYYY-MM-DD&end=YYYY-MM-DD
-router.get("/range", asyncHandler(dailyDataController.getDailyDataRange));
 
 export default router;

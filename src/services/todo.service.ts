@@ -44,3 +44,11 @@ export const markCompletedTodos = async (
   if (!titles?.length) throw new TodoError("No todo titles provided");
   return Todo.markCompletedTodos(userId, titles);
 };
+
+export const getTodosByRange = async (
+  userId: string,
+  start: Date,
+  end: Date
+): Promise<ITodo[]> => {
+  return Todo.findByRange(userId, start, end);
+};

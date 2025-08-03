@@ -24,6 +24,7 @@ interface ITodoModel extends Model<ITodo> {
   markCompletedTodos(userId: string, titles: string[]): Promise<number>;
   updateTodoById(id: string, data: Partial<ITodo>): Promise<ITodo | null>;
   deleteTodoById(id: string): Promise<ITodo | null>;
+  findByRange(userId: string, start: Date, end: Date): Promise<ITodo[]>;
 }
 
 // --------------------
@@ -108,6 +109,17 @@ TodoSchema.statics.markCompletedTodos = async function (
   );
 
   return result.modifiedCount;
+};
+
+TodoSchema.statics.findByRange = async function (
+  userId: string,
+  start: Date,
+  end: Date
+) {
+  return this.find({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+  });
 };
 
 // --------------------

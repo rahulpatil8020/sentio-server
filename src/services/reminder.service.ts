@@ -58,3 +58,11 @@ export const getRemindersByDate = async (
 ): Promise<IReminder[]> => {
   return Reminder.findByDate(userId, date);
 };
+
+export const getRemindersByRange = async (
+  userId: string,
+  start: Date,
+  end: Date
+): Promise<IReminder[]> => {
+  return Reminder.findByRange(userId, start, end);
+};

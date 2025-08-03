@@ -22,7 +22,7 @@ interface IEmotionalStateModel extends Model<IEmotionalState> {
   deleteById(id: string): Promise<IEmotionalState | null>;
   getLast7DaysByUserId(userId: mongoose.Types.ObjectId): Promise<IEmotionalState[]>;
   getByDate(userId: mongoose.Types.ObjectId, date: string): Promise<IEmotionalState[]>;
-
+  findByRange(userId: string, start: Date, end: Date): Promise<IEmotionalState[]>
 }
 
 // --------------------
@@ -89,6 +89,18 @@ EmotionalStateSchema.statics.getByDate = function (
     },
   }).sort({ createdAt: -1 }); // newest first
 };
+
+EmotionalStateSchema.statics.findByRange = async function (
+  userId: string,
+  start: Date,
+  end: Date
+) {
+  return this.find({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+  });
+};
+
 // --------------------
 // Model
 // --------------------

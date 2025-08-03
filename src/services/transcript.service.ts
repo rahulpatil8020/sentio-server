@@ -330,3 +330,19 @@ export const getTranscriptsByDate = async (
 ): Promise<ITranscript[]> => {
   return Transcript.getTranscriptsByDate(userId, date);
 };
+
+export const getSummariesByRange = async (
+  userId: string,
+  start: Date,
+  end: Date
+): Promise<Pick<ITranscript, "summary" | "createdAt">[]> => {
+  return Transcript.getSummariesByRange(userId, start, end);
+};
+
+export const getTranscriptsByRange = async (
+  userId: string,
+  start: Date,
+  end: Date
+): Promise<ITranscript[]> => {
+  return Transcript.getTranscriptsByRange(userId, start, end);
+};

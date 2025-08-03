@@ -28,6 +28,7 @@ interface IReminderModel extends Model<IReminder> {
   ): Promise<IReminder | null>;
   deleteReminderById(id: string): Promise<IReminder | null>;
   findByDate(userId: string, date: string): Promise<IReminder[]>;
+  findByRange(userId: string, start: Date, end: Date): Promise<IReminder[]>;
 }
 
 // --------------------
@@ -110,6 +111,18 @@ ReminderSchema.statics.findByDate = async function (
     },
   }).sort({ remindAt: 1 });
 };
+
+ReminderSchema.statics.findByRange = async function (
+  userId: string,
+  start: Date,
+  end: Date
+) {
+  return this.find({
+    userId,
+    remindAt: { $gte: start, $lte: end },
+  });
+};
+
 
 // --------------------
 // Model
