@@ -134,10 +134,13 @@ TranscriptSchema.statics.getTranscriptsByRange = function (
   start: Date,
   end: Date
 ) {
-  return this.find({
-    userId,
-    createdAt: { $gte: start, $lte: end },
-  });
+  return this.find(
+    {
+      userId,
+      createdAt: { $gte: start, $lte: end },
+    },
+    { _id: 1, text: 1, createdAt: 1 } // 👈 only include text, exclude _id
+  );
 };
 
 TranscriptSchema.statics.getSummariesByRange = function (
