@@ -27,8 +27,7 @@ interface IReminderModel extends Model<IReminder> {
     data: Partial<IReminder>
   ): Promise<IReminder | null>;
   deleteReminderById(id: string): Promise<IReminder | null>;
-  findByDate(userId: string, date: string): Promise<IReminder[]>;
-  findByRange(userId: string, start: Date, end: Date): Promise<IReminder[]>;
+  findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>;
 }
 
 // --------------------
@@ -95,34 +94,30 @@ ReminderSchema.statics.insertManyReminders = async function (
   return this.insertMany(docs);
 };
 
-ReminderSchema.statics.findByDate = async function (
-  userId: string,
-  date: string
-) {
-  const start = new Date(date);
-  const end = new Date(date);
-  end.setHours(23, 59, 59, 999);
-
-  return this.find({
-    userId,
-    remindAt: {
-      $gte: start,
-      $lte: end,
-    },
-  }).sort({ remindAt: 1 });
-};
-
-ReminderSchema.statics.findByRange = async function (
+ReminderSchema.statics.findByRangeGrouped = function (
   userId: string,
   start: Date,
-  end: Date
+  end: Date,
+  timezone: string = "UTC"
 ) {
-  return this.find({
-    userId,
-    remindAt: { $gte: start, $lte: end },
-  });
+  return this.aggregate([
+    { $match: { userId: new mongoose.Types.ObjectId(userId), remindAt: { $gte: start, $lte: end } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timezone } },
+        reminders: {
+          $push: {
+            _id: "$_id",
+            title: "$title",
+            remindAt: "$remindAt",
+            createdAt: "$createdAt",
+          },
+        },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
 };
-
 
 // --------------------
 // Model

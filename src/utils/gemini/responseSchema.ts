@@ -1,106 +1,40 @@
 export const getGeminiResponseSchema = () => {
   return {
-    type: "object",
-    properties: {
-      emotionalState: {
-        type: "object",
-        properties: {
-          state: {
-            type: "string",
-            enum: [
-              "happy",
-              "sad",
-              "stressed",
-              "anxious",
-              "excited",
-              "relaxed",
-              "productive",
-              "depressed",
-              "overwhelmed",
-            ],
-          },
-          intensity: {
-            type: "integer",
-            minimum: 1,
-            maximum: 10,
-          },
-          note: {
-            type: "string",
-          },
-        },
-        required: ["state", "intensity", "note"],
-      },
-      newHabits: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            description: { type: "string" },
-            frequency: {
-              type: "string",
-              enum: ["daily", "weekly", "monthly"],
-            },
-            reminderTime: {
-              type: "string",
-              pattern: "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
-            },
-          },
-          required: ["title", "description", "frequency"],
-        },
-      },
-      completedHabits: {
-        type: "array",
-        items: { type: "string" },
-      },
-      newTodos: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            dueDate: {
-              type: "string",
-              pattern: "^\\d{4}-\\d{2}-\\d{2}$",
-            },
-          },
-          required: ["title"],
-        },
-      },
-      completedTodos: {
-        type: "array",
-        items: { type: "string" },
-      },
-      newReminders: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            remindAt: {
-              type: "string",
-              format: "date-time",
-            },
-          },
-          required: ["title", "remindAt"],
-        },
-      },
-      emergencySuggestion: {
-        type: "string",
-      },
-      suggestions: {
-        type: "array",
-        items: { type: "string" },
-      },
+    emotionalState: {
+      state: "happy | joyful | excited | relaxed | calm | content | productive | neutral | tired | stressed | anxious | overwhelmed | frustrated | sad | depressed | apathetic | angry",
+      intensity: "number (1–10)",
+      note: "string (short first-person reflection explaining why I feel this way)"
     },
-    required: [
-      "emotionalState",
-      "newHabits",
-      "completedHabits",
-      "newTodos",
-      "completedTodos",
-      "newReminders",
-      "suggestions",
+    newHabits: [
+      {
+        title: "string",
+        description: "string (why I want this habit)",
+        frequency: "daily | weekly | monthly",
+        reminderTime: "HH:mm (optional, local time)"
+      }
     ],
+    completedHabits: [
+      "string (exact title from Habits data)"
+    ],
+    newTodos: [
+      {
+        title: "string",
+        dueDate: "YYYY-MM-DD (optional, local day)",
+        priority: "number (1–10)"
+      }
+    ],
+    completedTodos: [
+      "string (exact title from Todos data)"
+    ],
+    newReminders: [
+      {
+        title: "string",
+        remindAt: "YYYY-MM-DDTHH:mm:ssZ (UTC)"
+      }
+    ],
+    emergencySuggestion: "string (only if necessary)",
+    suggestions: [
+      "string (first-person actionable suggestion)"
+    ]
   };
 };

@@ -23,6 +23,7 @@ interface IEmotionalStateModel extends Model<IEmotionalState> {
   getLast7DaysByUserId(userId: mongoose.Types.ObjectId): Promise<IEmotionalState[]>;
   getByDate(userId: mongoose.Types.ObjectId, date: string): Promise<IEmotionalState[]>;
   findByRange(userId: string, start: Date, end: Date): Promise<IEmotionalState[]>
+  findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>
 }
 
 // --------------------
@@ -99,6 +100,32 @@ EmotionalStateSchema.statics.findByRange = async function (
     userId,
     createdAt: { $gte: start, $lte: end },
   });
+};
+
+EmotionalStateSchema.statics.findByRangeGrouped = function (
+  userId: string,
+  start: Date,
+  end: Date,
+  timezone: string = "UTC"
+) {
+  return this.aggregate([
+    { $match: { userId: new mongoose.Types.ObjectId(userId), createdAt: { $gte: start, $lte: end } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timezone } },
+        emotions: {
+          $push: {
+            _id: "$_id",
+            state: "$state",
+            intensity: "$intensity",
+            note: "$note",
+            createdAt: "$createdAt",
+          },
+        },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
 };
 
 // --------------------

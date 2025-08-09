@@ -19,11 +19,7 @@ interface ITranscriptModel extends Model<ITranscript> {
   findTranscriptById(id: string): Promise<ITranscript | null>;
   createTranscript(data: Partial<ITranscript>): Promise<ITranscript>;
   deleteTranscriptById(id: string): Promise<ITranscript | null>;
-  getSummaryByDate(userId: string, date: string): Promise<ITranscript | null>;
-  getSummariesByDate(userId: string, date: string): Promise<ITranscript[]>;
-  getTranscriptsByDate(userId: string, date: string): Promise<ITranscript[]>;
-  getTranscriptsByRange(userId: string, start: Date, end: Date): Promise<ITranscript[]>;
-  getSummariesByRange(userId: string, start: Date, end: Date): Promise<ITranscript[]>;
+  findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>;
 }
 
 // --------------------
@@ -80,81 +76,29 @@ TranscriptSchema.statics.getSummariesForLast7Days = function (userId: string) {
     .select("summary createdAt"); // only fetch summary + date
 };
 
-TranscriptSchema.statics.getSummaryByDate = function (
-  userId: string,
-  date: string
-) {
-  const start = new Date(date);
-  const end = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-
-  return this.findOne({
-    userId,
-    createdAt: { $gte: start, $lte: end },
-    summary: { $exists: true, $ne: "" },
-  }).select("summary createdAt");
-};
-
-TranscriptSchema.statics.getSummariesByDate = function (
-  userId: string,
-  date: string
-) {
-  const start = new Date(date);
-  const end = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-
-  return this.find({
-    userId,
-    createdAt: { $gte: start, $lte: end },
-    summary: { $exists: true, $ne: "" },
-  })
-    .sort({ createdAt: -1 }) // optional: newest first
-    .select("summary createdAt");
-};
-
-TranscriptSchema.statics.getTranscriptsByDate = function (
-  userId: string,
-  date: string
-) {
-  const start = new Date(date);
-  const end = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-
-  return this.find({
-    userId,
-    createdAt: { $gte: start, $lte: end },
-  }).sort({ createdAt: -1 }); // optional: newest first
-};
-
-TranscriptSchema.statics.getTranscriptsByRange = function (
+TranscriptSchema.statics.findByRangeGrouped = function (
   userId: string,
   start: Date,
-  end: Date
+  end: Date,
+  timezone: string = "UTC"
 ) {
-  return this.find(
+  return this.aggregate([
+    { $match: { userId: new mongoose.Types.ObjectId(userId), createdAt: { $gte: start, $lte: end } } },
     {
-      userId,
-      createdAt: { $gte: start, $lte: end },
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timezone } },
+        transcripts: {
+          $push: {
+            _id: "$_id",
+            text: "$text",
+            createdAt: "$createdAt",
+            summary: "$summary",
+          },
+        },
+      },
     },
-    { _id: 1, text: 1, createdAt: 1 } // 👈 only include text, exclude _id
-  );
-};
-
-TranscriptSchema.statics.getSummariesByRange = function (
-  userId: string,
-  start: Date,
-  end: Date
-) {
-  return this.find({
-    userId,
-    createdAt: { $gte: start, $lte: end },
-    summary: { $exists: true, $ne: "" },
-  })
-    .sort({ createdAt: -1 }) // optional: newest first
-    .select("summary createdAt");
+    { $sort: { _id: 1 } },
+  ]);
 };
 
 // --------------------

@@ -25,6 +25,7 @@ interface ITodoModel extends Model<ITodo> {
   updateTodoById(id: string, data: Partial<ITodo>): Promise<ITodo | null>;
   deleteTodoById(id: string): Promise<ITodo | null>;
   findByRange(userId: string, start: Date, end: Date): Promise<ITodo[]>;
+  findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>;
 }
 
 // --------------------
@@ -120,6 +121,33 @@ TodoSchema.statics.findByRange = async function (
     userId,
     createdAt: { $gte: start, $lte: end },
   });
+};
+
+TodoSchema.statics.findByRangeGrouped = function (
+  userId: string,
+  start: string,
+  end: string,
+  timezone: string = "UTC"
+) {
+  return this.aggregate([
+    { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timezone } },
+        todos: {
+          $push: {
+            _id: "$_id",
+            title: "$title",
+            completed: "$completed",
+            dueDate: "$dueDate",
+            createdAt: "$createdAt",
+            priority: "$priority",
+          },
+        },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
 };
 
 // --------------------

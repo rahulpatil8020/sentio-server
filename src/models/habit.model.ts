@@ -1,15 +1,12 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
+import { toUtcBoundsForLocalRange } from "../utils/time";
 
 // 🔥 Subdocument for completions
 const CompletionSchema = new Schema(
   {
     date: {
       type: Date,
-      required: true,
-    },
-    completedAt: {
-      type: Date,
-      default: Date.now,
+      required: true, // exact completion timestamp
     },
   },
   { _id: false }
@@ -41,6 +38,7 @@ export interface IHabit extends Document {
   completions: ICompletion[];
   isDeleted: boolean;
   isAccepted: boolean;
+
 }
 
 interface IHabitModel extends Model<IHabit> {
@@ -55,6 +53,7 @@ interface IHabitModel extends Model<IHabit> {
   ): Promise<IHabit | null>;
   markHabitsCompleted(userId: string, titles: string[]): Promise<void> | null;
   acceptHabitById(id: string): Promise<IHabit | null>;
+  findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>;
 }
 
 // 🔥 Main Habit Schema
@@ -160,7 +159,6 @@ HabitSchema.statics.markHabitsCompleted = async function (
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Normalize to start of day
 
-  // Fetch matching habits
   const habits = await this.find({
     userId,
     title: { $in: titles },
@@ -173,7 +171,7 @@ HabitSchema.statics.markHabitsCompleted = async function (
     );
 
     if (!alreadyCompleted) {
-      habit.completions.push({ date: today, completedAt: new Date() });
+      habit.completions.push({ date: today });
 
       // 🔥 Update streaks
       const yesterday = new Date(today);
@@ -197,6 +195,36 @@ HabitSchema.statics.markHabitsCompleted = async function (
       await habit.save();
     }
   }
+};
+
+HabitSchema.statics.findByRangeGrouped = function (
+  userId: string,
+  start: string,
+  end: string,
+  timezone: string = "UTC"
+) {
+  const { startUTC, endUTC } = toUtcBoundsForLocalRange(start, end, timezone);
+  return this.aggregate([
+    { $match: { userId: new mongoose.Types.ObjectId(userId), isDeleted: false } },
+    { $unwind: "$completions" },
+    { $match: { "completions.date": { $gte: start, $lte: end } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$completions.date", timezone: timezone } },
+        habits: {
+          $push: {
+            _id: "$_id",
+            title: "$title",
+            description: "$description",
+            frequency: "$frequency",
+            streak: "$streak",
+            completion: "$completions",
+          },
+        },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
 };
 
 const Habit = mongoose.model<IHabit, IHabitModel>("Habit", HabitSchema);
