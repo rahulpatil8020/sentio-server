@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
+import { toUtcBoundsForLocalRange } from "../utils/time";
 
 // --------------------
 // Reminder Interface
@@ -96,12 +97,14 @@ ReminderSchema.statics.insertManyReminders = async function (
 
 ReminderSchema.statics.findByRangeGrouped = function (
   userId: string,
-  start: Date,
-  end: Date,
+  start: string,
+  end: string,
   timezone: string = "UTC"
 ) {
+
+  const { startUTC, endUTC } = toUtcBoundsForLocalRange(start, end, timezone);
   return this.aggregate([
-    { $match: { userId: new mongoose.Types.ObjectId(userId), remindAt: { $gte: start, $lte: end } } },
+    { $match: { userId: new mongoose.Types.ObjectId(userId), remindAt: { $gte: startUTC, $lte: endUTC } } },
     {
       $group: {
         _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timezone } },

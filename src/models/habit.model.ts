@@ -207,7 +207,7 @@ HabitSchema.statics.findByRangeGrouped = function (
   return this.aggregate([
     { $match: { userId: new mongoose.Types.ObjectId(userId), isDeleted: false } },
     { $unwind: "$completions" },
-    { $match: { "completions.date": { $gte: start, $lte: end } } },
+    { $match: { "completions.date": { $gte: startUTC, $lte: endUTC } } },
     {
       $group: {
         _id: { $dateToString: { format: "%Y-%m-%d", date: "$completions.date", timezone: timezone } },

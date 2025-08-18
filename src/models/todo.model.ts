@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
+import { toUtcBoundsForLocalRange } from "../utils/time";
 
 // --------------------
 // Todo Interface
@@ -11,6 +12,7 @@ export interface ITodo extends Document {
   createdBy: "AI" | "USER";
   createdAt: Date;
   priority: number; // Priority: 1 (highest) to 10 (lowest)
+  completedAt?: Date;
 }
 
 // --------------------
@@ -26,6 +28,7 @@ interface ITodoModel extends Model<ITodo> {
   deleteTodoById(id: string): Promise<ITodo | null>;
   findByRange(userId: string, start: Date, end: Date): Promise<ITodo[]>;
   findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>;
+  findCompletedByRangeGrouped(userId: string, startISO: string, endISO: string, timezone?: string): Promise<any>;
 }
 
 // --------------------
@@ -61,7 +64,7 @@ TodoSchema.statics.findIncompleteTodoByUserId = function (userId: string) {
   return this.find({
     userId,
     completed: false,
-  }).sort({ dueDate: 1, createdAt: -1 });
+  }).sort({ dueDate: 1, priority: 1, createdAt: -1 });
 };
 
 TodoSchema.statics.createTodo = function (data: Partial<ITodo>) {
@@ -96,7 +99,7 @@ TodoSchema.statics.insertManyTodos = async function (
 
 TodoSchema.statics.markCompletedTodos = async function (
   userId: string,
-  titles: string[]
+  titles: string[],
 ) {
   if (!titles?.length) return 0;
 
@@ -106,21 +109,10 @@ TodoSchema.statics.markCompletedTodos = async function (
       title: { $in: titles },
       completed: false,
     },
-    { $set: { completed: true } }
+    { $set: { completed: true, completedAt: new Date() } }
   );
 
   return result.modifiedCount;
-};
-
-TodoSchema.statics.findByRange = async function (
-  userId: string,
-  start: Date,
-  end: Date
-) {
-  return this.find({
-    userId,
-    createdAt: { $gte: start, $lte: end },
-  });
 };
 
 TodoSchema.statics.findByRangeGrouped = function (
@@ -141,6 +133,49 @@ TodoSchema.statics.findByRangeGrouped = function (
             completed: "$completed",
             dueDate: "$dueDate",
             createdAt: "$createdAt",
+            priority: "$priority",
+          },
+        },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+};
+
+
+TodoSchema.statics.findCompletedByRangeGrouped = function (
+  userId: string,
+  startISO: string,           // "YYYY-MM-DD" local
+  endISO: string,             // "YYYY-MM-DD" local
+  timezone: string = "UTC"
+) {
+
+  const { startUTC, endUTC } = toUtcBoundsForLocalRange(startISO, endISO, timezone);
+  return this.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId),
+        completed: true,
+        completedAt: { $gte: startUTC, $lte: endUTC },
+      }
+    },
+    {
+      $group: {
+        _id: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$completedAt",
+            timezone: timezone,
+          },
+        },
+        todos: {
+          $push: {
+            _id: "$_id",
+            title: "$title",
+            completed: "$completed",
+            dueDate: "$dueDate",
+            createdAt: "$createdAt",
+            completedAt: "$completedAt",
             priority: "$priority",
           },
         },

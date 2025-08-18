@@ -10,6 +10,7 @@ const router = Router();
 router.use(verifyToken);
 router.use(validateTimezone);
 // GET /daily-data?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+router.get("/today", asyncHandler(dailyDataController.getTodaysData))
 router.get("/", asyncHandler(dailyDataController.getDailyData));
 router.get("/range", asyncHandler(dailyDataController.getDailyDataInRange));
 
