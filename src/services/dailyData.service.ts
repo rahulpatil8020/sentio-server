@@ -79,6 +79,7 @@ export const getDailyData = async (
         Transcript.findByRangeGrouped(userId, start, end, timezone),
     ]);
 
+
     const dailyData: { [date: string]: any } = {};
 
     const merge = (items: any[], key: string) => {
@@ -88,7 +89,6 @@ export const getDailyData = async (
                 dailyData[date] = {
                     habits: [],
                     todos: [],
-                    reminders: [],
                     emotions: [],
                     transcripts: [],
                 };
@@ -119,7 +119,8 @@ export const getTodaysData = async (
     day: string,
     timezone?: string
 ) => {
-    const start = day, end = day
+    const start = day, end = day;
+
     const [
         habits,
         todos,
@@ -127,44 +128,21 @@ export const getTodaysData = async (
         emotions,
         transcripts,
     ] = await Promise.all([
-        Habit.findByRangeGrouped(userId, start, end, timezone),
+        Habit.findActiveHabitsByUserId(userId),
         Todo.findIncompleteTodoByUserId(userId),
-        Reminder.findByRangeGrouped(userId, start, end, timezone),
-        EmotionalState.findByRangeGrouped(userId, start, end, timezone),
-        Transcript.findByRangeGrouped(userId, start, end, timezone),
+        Reminder.findUpcomingByUserId(userId),
+        EmotionalState.findByRangeFlat(userId, start, end, timezone),
+        Transcript.findByRangeFlat(userId, start, end, timezone),
     ]);
 
-    const dailyData: { [date: string]: any } = {};
-
-    const merge = (items: any[], key: string) => {
-        items.forEach(item => {
-            const date = item._id;
-            if (!dailyData[date]) {
-                dailyData[date] = {
-                    habits: [],
-                    todos: [],
-                    reminders: [],
-                    emotions: [],
-                    transcripts: [],
-                };
-            }
-            dailyData[date][key] = item[key];
-        });
+    // 🔹 Flattened structure
+    const dailyData = {
+        habits,
+        todos,
+        reminders: upcomingReminders,
+        emotions,
+        transcripts,
     };
 
-    merge(habits, "habits");
-    merge(todos, "todos");
-    merge(upcomingReminders, "reminders");
-    merge(emotions, "emotions");
-    merge(transcripts, "transcripts");
-
-    // Sort by date ascending
-    const sortedDailyData: { [date: string]: any } = {};
-    Object.keys(dailyData)
-        .sort()
-        .forEach(date => {
-            sortedDailyData[date] = dailyData[date];
-        });
-
-    return sortedDailyData;
+    return dailyData;
 };
