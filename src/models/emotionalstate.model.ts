@@ -25,6 +25,7 @@ interface IEmotionalStateModel extends Model<IEmotionalState> {
   getByDate(userId: mongoose.Types.ObjectId, date: string): Promise<IEmotionalState[]>;
   findByRange(userId: string, start: Date, end: Date): Promise<IEmotionalState[]>
   findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>
+  findByRangeFlat(userId: string, start: string, end: string, timezone?: string): Promise<any>
 }
 
 // --------------------
@@ -130,6 +131,25 @@ EmotionalStateSchema.statics.findByRangeGrouped = function (
     },
     { $sort: { _id: 1 } },
   ]);
+};
+
+EmotionalStateSchema.statics.findByRangeFlat = function (
+  userId: string,
+  start: string,
+  end: string,
+  timezone: string = "UTC"
+) {
+  const { startUTC, endUTC } = toUtcBoundsForLocalRange(start, end, timezone);
+
+  return this.find(
+    {
+      userId: new mongoose.Types.ObjectId(userId),
+      createdAt: { $gte: startUTC, $lte: endUTC },
+    },
+    // projection: return only the fields you need
+    { _id: 1, state: 1, intensity: 1, note: 1, createdAt: 1 }
+  )
+    .sort({ createdAt: 1 }); // ascending by time (change to -1 if you prefer newest first)
 };
 
 // --------------------

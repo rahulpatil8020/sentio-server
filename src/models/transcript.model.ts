@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
+import { toUtcBoundsForLocalRange } from "../utils/time";
 
 // --------------------
 // Transcript Interface
@@ -20,6 +21,7 @@ interface ITranscriptModel extends Model<ITranscript> {
   createTranscript(data: Partial<ITranscript>): Promise<ITranscript>;
   deleteTranscriptById(id: string): Promise<ITranscript | null>;
   findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>;
+  findByRangeFlat(userId: string, start: string, end: string, timezone?: string): Promise<any>;
 }
 
 // --------------------
@@ -78,12 +80,13 @@ TranscriptSchema.statics.getSummariesForLast7Days = function (userId: string) {
 
 TranscriptSchema.statics.findByRangeGrouped = function (
   userId: string,
-  start: Date,
-  end: Date,
+  start: string,
+  end: string,
   timezone: string = "UTC"
 ) {
+  const { startUTC, endUTC } = toUtcBoundsForLocalRange(start, end, timezone);
   return this.aggregate([
-    { $match: { userId: new mongoose.Types.ObjectId(userId), createdAt: { $gte: start, $lte: end } } },
+    { $match: { userId: new mongoose.Types.ObjectId(userId), createdAt: { $gte: startUTC, $lte: endUTC } } },
     {
       $group: {
         _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: timezone } },
@@ -99,6 +102,24 @@ TranscriptSchema.statics.findByRangeGrouped = function (
     },
     { $sort: { _id: 1 } },
   ]);
+};
+
+TranscriptSchema.statics.findByRangeFlat = function (
+  userId: string,
+  start: string,
+  end: string,
+  timezone: string = "UTC"
+) {
+  const { startUTC, endUTC } = toUtcBoundsForLocalRange(start, end, timezone);
+
+  return this.find(
+    {
+      userId: new mongoose.Types.ObjectId(userId),
+      createdAt: { $gte: startUTC, $lte: endUTC },
+    },
+    // projection: only what you need
+    { _id: 1, text: 1, createdAt: 1, summary: 1 }
+  ).sort({ createdAt: 1 }); // or -1 for newest first
 };
 
 // --------------------
