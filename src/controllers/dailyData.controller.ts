@@ -43,24 +43,3 @@ export const getTodaysData = async (req: AuthenticatedRequest, res: Response) =>
         data,
     });
 };
-
-export const getDailyDataInRange = async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.user.userId;
-    const { start, end } = req.query;
-    const timezone = req.timezone!;
-
-    if (!start || !end || typeof start !== "string" || typeof end !== "string") {
-        return res.status(400).json({
-            success: false,
-            message: "Missing or invalid 'start' and 'end' query parameters (must be ISO datetime)",
-        });
-    }
-
-    const data = await dailyDataService.getDailyDataInRange(userId, start, end, timezone);
-
-    res.status(200).json({
-        success: true,
-        message: `Daily data from ${start} to ${end} fetched successfully`,
-        data,
-    });
-};

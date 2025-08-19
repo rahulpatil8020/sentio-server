@@ -6,12 +6,11 @@ import { validateTimezone } from "../middleware/timezone";
 
 const router = Router();
 
-// Secure all routes with JWT
 router.use(verifyToken);
 router.use(validateTimezone);
-// GET /daily-data?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+
+// GET /api/daily-data/today?day=YYYY-MM-DD
 router.get("/today", asyncHandler(dailyDataController.getTodaysData))
-router.get("/", asyncHandler(dailyDataController.getDailyData));
-router.get("/range", asyncHandler(dailyDataController.getDailyDataInRange));
+router.get("/past", asyncHandler(dailyDataController.getDailyData));
 
 export default router;

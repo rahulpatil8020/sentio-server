@@ -28,7 +28,7 @@ interface ITodoModel extends Model<ITodo> {
   deleteTodoById(id: string): Promise<ITodo | null>;
   findByRange(userId: string, start: Date, end: Date): Promise<ITodo[]>;
   findByRangeGrouped(userId: string, start: string, end: string, timezone?: string): Promise<any>;
-  findCompletedByRangeGrouped(userId: string, startISO: string, endISO: string, timezone?: string): Promise<any>;
+  findCompletedByRangeFlat(userId: string, startISO: string, endISO: string, timezone?: string): Promise<any>;
 }
 
 // --------------------
@@ -143,46 +143,31 @@ TodoSchema.statics.findByRangeGrouped = function (
 };
 
 
-TodoSchema.statics.findCompletedByRangeGrouped = function (
+TodoSchema.statics.findCompletedByRangeFlat = function (
   userId: string,
-  startISO: string,           // "YYYY-MM-DD" local
-  endISO: string,             // "YYYY-MM-DD" local
+  startISO: string,
+  endISO: string,
   timezone: string = "UTC"
 ) {
-
   const { startUTC, endUTC } = toUtcBoundsForLocalRange(startISO, endISO, timezone);
-  return this.aggregate([
+
+  return this.find(
     {
-      $match: {
-        userId: new mongoose.Types.ObjectId(userId),
-        completed: true,
-        completedAt: { $gte: startUTC, $lte: endUTC },
-      }
+      userId: new mongoose.Types.ObjectId(userId),
+      completed: true,
+      completedAt: { $gte: startUTC, $lte: endUTC },
     },
+    // projection — keep it tight
     {
-      $group: {
-        _id: {
-          $dateToString: {
-            format: "%Y-%m-%d",
-            date: "$completedAt",
-            timezone: timezone,
-          },
-        },
-        todos: {
-          $push: {
-            _id: "$_id",
-            title: "$title",
-            completed: "$completed",
-            dueDate: "$dueDate",
-            createdAt: "$createdAt",
-            completedAt: "$completedAt",
-            priority: "$priority",
-          },
-        },
-      },
-    },
-    { $sort: { _id: 1 } },
-  ]);
+      _id: 1,
+      title: 1,
+      completed: 1,
+      dueDate: 1,
+      createdAt: 1,
+      completedAt: 1,
+      priority: 1,
+    }
+  ).sort({ completedAt: 1 }); // or -1 for newest first
 };
 
 // --------------------
